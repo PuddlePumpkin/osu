@@ -10,7 +10,9 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
+using osu.Game.Configuration;
 using osu.Game.Rulesets.Objects.Drawables;
+using osu.Game.Rulesets.Osu.Configuration;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Osu.Objects.Drawables;
 using osu.Game.Skinning;
@@ -39,7 +41,7 @@ namespace osu.Game.Rulesets.Osu.Skinning.Legacy
 
         private readonly Bindable<Color4> accentColour = new Bindable<Color4>();
         private readonly IBindable<int> indexInCurrentCombo = new Bindable<int>();
-
+        private Bindable<CircleFadeMode> configFadeMode = null!;
         [Resolved(canBeNull: true)] // Can't really be null but required to handle potential of disposal before DI completes.
         private DrawableHitObject? drawableObject { get; set; }
 
@@ -55,14 +57,14 @@ namespace osu.Game.Rulesets.Osu.Skinning.Legacy
         }
 
         [BackgroundDependencyLoader]
-        private void load()
+        private void load(OsuConfigManager config)
         {
             var drawableOsuObject = (DrawableOsuHitObject?)drawableObject;
 
             // if a base texture for the specified prefix exists, continue using it for subsequent lookups.
             // otherwise fall back to the default prefix "hitcircle".
             string circleName = (priorityLookupPrefix != null && skin.GetTexture(priorityLookupPrefix) != null) ? priorityLookupPrefix : @"hitcircle";
-
+            configFadeMode = config.GetBindable<CircleFadeMode>(OsuSetting.CircleFadeMode);
             Vector2 maxSize = OsuHitObject.OBJECT_DIMENSIONS * 2;
 
             // at this point, any further texture fetches should be correctly using the priority source if the base texture was retrieved using it.
@@ -143,7 +145,19 @@ namespace osu.Game.Rulesets.Osu.Skinning.Legacy
 
         private void updateStateTransforms(DrawableHitObject drawableHitObject, ArmedState state)
         {
-            const double legacy_fade_duration = 240;
+            double legacy_fade_duration = 240;
+            switch (configFadeMode.Value)
+            {
+                case CircleFadeMode.Default:
+                    legacy_fade_duration = 240;
+                    break;
+                case CircleFadeMode.Fast:
+                    legacy_fade_duration = 120;
+                    break;
+                case CircleFadeMode.Instant:
+                    legacy_fade_duration = 1;
+                    break;
+            }
 
             using (BeginAbsoluteSequence(drawableObject.AsNonNull().HitStateUpdateTime))
             {

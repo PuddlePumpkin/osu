@@ -134,6 +134,26 @@ namespace osu.Game.Localisation
         /// </summary>
         public static LocalisableString ClassicScoreDisplay => new TranslatableString(getKey(@"classic_score_display"), @"Classic");
 
+        /// <summary>
+        /// "Circle Fade Speed"
+        /// </summary>
+        public static LocalisableString CircleFadeMode => new TranslatableString(getKey(@"circle_fade_speed"), @"Circle Fade Speed");
+
+        /// <summary>
+        /// "Default"
+        /// </summary>
+        public static LocalisableString DefaultSpeed => new TranslatableString(getKey(@"default_speed"), @"Default");
+
+        /// <summary>
+        /// "Fast"
+        /// </summary>
+        public static LocalisableString FastSpeed => new TranslatableString(getKey(@"fast_speed"), @"Fast");
+
+        /// <summary>
+        /// "Instant"
+        /// </summary>
+        public static LocalisableString InstantSpeed => new TranslatableString(getKey(@"instant_speed"), @"Instant");
+
         private static string getKey(string key) => $@"{prefix}:{key}";
     }
 }

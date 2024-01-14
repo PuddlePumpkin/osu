@@ -31,6 +31,11 @@ namespace osu.Game.Overlays.Settings.Sections.Gameplay
                     LabelText = GraphicsSettingsStrings.HitLighting,
                     Current = config.GetBindable<bool>(OsuSetting.HitLighting)
                 },
+                new SettingsEnumDropdown<CircleFadeMode>
+                {
+                    LabelText = GameplaySettingsStrings.CircleFadeMode,
+                    Current = config.GetBindable<CircleFadeMode>(OsuSetting.CircleFadeMode)
+                },
             };
         }
     }

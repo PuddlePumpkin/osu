@@ -135,6 +135,7 @@ namespace osu.Game.Configuration
             SetDefault(OsuSetting.LightenDuringBreaks, true);
 
             SetDefault(OsuSetting.HitLighting, true);
+            SetDefault(OsuSetting.CircleFadeMode, CircleFadeMode.Default);
 
             SetDefault(OsuSetting.HUDVisibilityMode, HUDVisibilityMode.Always);
             SetDefault(OsuSetting.ShowHealthDisplayWhenCantFail, true);
@@ -400,6 +401,7 @@ namespace osu.Game.Configuration
         NotifyOnPrivateMessage,
         UIHoldActivationDelay,
         HitLighting,
+        CircleFadeMode,
         MenuBackgroundSource,
         GameplayDisableWinKey,
         SeasonalBackgroundMode,

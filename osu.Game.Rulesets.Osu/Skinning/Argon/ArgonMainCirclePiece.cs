@@ -47,7 +47,7 @@ namespace osu.Game.Rulesets.Osu.Skinning.Argon
         private readonly Container kiaiContainer;
 
         private Bindable<bool> configHitLighting = null!;
-
+        private Bindable<CircleFadeMode> configFadeMode = null!;
         private static readonly Vector2 circle_size = OsuHitObject.OBJECT_DIMENSIONS;
 
         [Resolved]
@@ -119,7 +119,7 @@ namespace osu.Game.Rulesets.Osu.Skinning.Argon
 
             accentColour.BindTo(drawableObject.AccentColour);
             indexInCurrentCombo.BindTo(drawableOsuObject.IndexInCurrentComboBindable);
-
+            configFadeMode = config.GetBindable<CircleFadeMode>(OsuSetting.CircleFadeMode);
             configHitLighting = config.GetBindable<bool>(OsuSetting.HitLighting);
         }
 
@@ -163,7 +163,19 @@ namespace osu.Game.Rulesets.Osu.Skinning.Argon
                 {
                     case ArmedState.Hit:
                         // Fade out time is at a maximum of 800. Must match `DrawableHitCircle`'s arbitrary lifetime spec.
-                        const double fade_out_time = 800;
+                        double fade_out_time = 800;
+                        switch (configFadeMode.Value)
+                        {
+                            case CircleFadeMode.Default:
+                                fade_out_time = 800;
+                                break;
+                            case CircleFadeMode.Fast:
+                                fade_out_time = 400;
+                                break;
+                            case CircleFadeMode.Instant:
+                                fade_out_time = 20;
+                                break;
+                        }
                         const double flash_in_duration = 150;
                         const double resize_duration = 400;
 
