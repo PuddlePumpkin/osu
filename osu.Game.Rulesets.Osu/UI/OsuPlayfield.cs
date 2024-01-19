@@ -33,7 +33,7 @@ namespace osu.Game.Rulesets.Osu.UI
         private readonly PlayfieldBorder playfieldBorder;
         private readonly ProxyContainer approachCircles;
         private readonly ProxyContainer spinnerProxies;
-        private readonly JudgementContainer<DrawableOsuJudgement> judgementLayer;
+        public JudgementContainer<DrawableOsuJudgement> JudgementLayer;
 
         public SmokeContainer Smoke { get; }
         public FollowPointRenderer FollowPoints { get; }
@@ -57,7 +57,7 @@ namespace osu.Game.Rulesets.Osu.UI
                 Smoke = new SmokeContainer { RelativeSizeAxes = Axes.Both },
                 spinnerProxies = new ProxyContainer { RelativeSizeAxes = Axes.Both },
                 FollowPoints = new FollowPointRenderer { RelativeSizeAxes = Axes.Both },
-                judgementLayer = new JudgementContainer<DrawableOsuJudgement> { RelativeSizeAxes = Axes.Both },
+                JudgementLayer = new JudgementContainer<DrawableOsuJudgement> { RelativeSizeAxes = Axes.Both },
                 HitObjectContainer,
                 judgementAboveHitObjectLayer = new Container { RelativeSizeAxes = Axes.Both },
                 approachCircles = new ProxyContainer { RelativeSizeAxes = Axes.Both },
@@ -187,7 +187,7 @@ namespace osu.Game.Rulesets.Osu.UI
 
             DrawableOsuJudgement explosion = pool.Get(doj => doj.Apply(result, judgedObject));
 
-            judgementLayer.Add(explosion);
+            JudgementLayer.Add(explosion);
 
             // the proxied content is added to judgementAboveHitObjectLayer once, on first load, and never removed from it.
             // ensure that ordering is consistent with expectations (latest judgement should be front-most).

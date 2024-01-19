@@ -70,6 +70,7 @@ namespace osu.Game.Rulesets.Osu.Mods
             // Judgements can potentially be turned on in a future where they display at a position relative to their drawable counterpart.
             drawableRuleset.Playfield.DisplayJudgements.Value = ShowJudgements.Value;
             (drawableRuleset.Playfield as OsuPlayfield)?.FollowPoints.Hide();
+            ((OsuPlayfield)drawableRuleset.Playfield).Position = new Vector2(0, 0);
         }
 
         private void applyTransform(DrawableHitObject drawable, ArmedState state)
@@ -97,6 +98,16 @@ namespace osu.Game.Rulesets.Osu.Mods
             double time = playfield.Time.Current;
             PlayfieldSize = playfield.DrawSize;
             CursorPosition = playfield.Cursor.AsNonNull().ActiveCursor.DrawPosition;
+            OsuPlayfield osuPf = (OsuPlayfield)playfield;
+            foreach (var judgements in osuPf.JudgementLayer.AliveChildren)
+            {
+                switch (judgements)
+                {
+                    case DrawableOsuJudgement judgement:
+                        judgement.OriginPosition = CursorPosition * ParaAmount.Value;
+                        break;
+                }
+            }
             foreach (var drawable in playfield.HitObjectContainer.AliveObjects)
             {
                 switch (drawable)
