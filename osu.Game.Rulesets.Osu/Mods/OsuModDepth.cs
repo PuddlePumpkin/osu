@@ -5,7 +5,6 @@ using System;
 using System.Linq;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.ObjectExtensions;
-using osu.Framework.Graphics;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Localisation;
 using osu.Game.Beatmaps;
@@ -29,7 +28,7 @@ namespace osu.Game.Rulesets.Osu.Mods
         public override ModType Type => ModType.Fun;
         public override LocalisableString Description => "3D. Almost.";
         public override double ScoreMultiplier => 1;
-        public override Type[] IncompatibleMods => base.IncompatibleMods.Concat(new[] { typeof(OsuModMagnetised), typeof(OsuModRepel), typeof(OsuModFreezeFrame), typeof(ModWithVisibilityAdjustment) }).ToArray();
+        public override Type[] IncompatibleMods => base.IncompatibleMods.Concat(new[] { typeof(OsuModMagnetised), typeof(OsuModRepel), typeof(OsuModFreezeFrame), typeof(ModWithVisibilityAdjustment), typeof(IRequiresApproachCircles) }).ToArray();
 
         private static readonly Vector3 camera_position = new Vector3(OsuPlayfield.BASE_SIZE.X * 0.5f, OsuPlayfield.BASE_SIZE.Y * 0.5f, -200);
         private readonly float sliderMinDepth = depthForScale(1.5f); // Depth at which slider's scale will be 1.5f
@@ -43,9 +42,9 @@ namespace osu.Game.Rulesets.Osu.Mods
         };
 
         [SettingSource("Parralax Amount", "Ratio of cursor to circle motion.", 0)]
-        public BindableFloat ParaAmount { get; } = new BindableFloat(0.25f)
+        public BindableFloat ParaAmount { get; } = new BindableFloat(0.3f)
         {
-            Precision = 0.05f,
+            Precision = 0.1f,
             MinValue = 0,
             MaxValue = 1
         };
@@ -91,27 +90,29 @@ namespace osu.Game.Rulesets.Osu.Mods
                     break;
             }
         }
-
+        public Vector2 PlayfieldSize = new Vector2(0, 0);
+        public Vector2 CursorPosition = new Vector2(0, 0);
         public void Update(Playfield playfield)
         {
             double time = playfield.Time.Current;
-            var cursorPos = playfield.Cursor.AsNonNull().ActiveCursor.DrawPosition;
+            PlayfieldSize = playfield.DrawSize;
+            CursorPosition = playfield.Cursor.AsNonNull().ActiveCursor.DrawPosition;
             foreach (var drawable in playfield.HitObjectContainer.AliveObjects)
             {
                 switch (drawable)
                 {
                     case DrawableHitCircle circle:
-                        processHitObject(time, circle, cursorPos);
+                        processHitObject(time, circle);
                         break;
 
                     case DrawableSlider slider:
-                        processSlider(time, slider, cursorPos);
+                        processSlider(time, slider);
                         break;
                 }
             }
         }
 
-        private void processHitObject(double time, DrawableOsuHitObject drawable, Vector2 cursorPos)
+        private void processHitObject(double time, DrawableOsuHitObject drawable)
         {
             var hitObject = drawable.HitObject;
             // Circles are always moving at the constant speed. They'll fade out before reaching the camera even at extreme conditions (AR 11, max depth).
@@ -120,7 +121,7 @@ namespace osu.Game.Rulesets.Osu.Mods
             float z = 2000 - (float)((Math.Max(time, appearTime) - appearTime) * speed);
 
             float scale = scaleForDepth(z);
-            drawable.Position = toPlayfieldPosition(scale, hitObject.StackedPosition, cursorPos);
+            drawable.Position = toPlayfieldPosition(scale, hitObject.StackedPosition);
             drawable.Scale = new Vector2(scale);
         }
         public static float MapRange(float from, float fromMin, float fromMax, float toMin, float toMax)
@@ -137,7 +138,7 @@ namespace osu.Game.Rulesets.Osu.Mods
 
             return to;
         }
-        private void processSlider(double time, DrawableSlider drawableSlider, Vector2 cursorPos)
+        private void processSlider(double time, DrawableSlider drawableSlider)
         {
             var hitObject = drawableSlider.HitObject;
 
@@ -149,7 +150,7 @@ namespace osu.Game.Rulesets.Osu.Mods
 
             if (zEnd > sliderMinDepth)
             {
-                processHitObject(time, drawableSlider, cursorPos);
+                processHitObject(time, drawableSlider);
                 return;
             }
 
@@ -179,7 +180,7 @@ namespace osu.Game.Rulesets.Osu.Mods
             }
 
             float scale = scaleForDepth(z);
-            drawableSlider.Position = toPlayfieldPosition(scale, hitObject.StackedPosition, cursorPos);
+            drawableSlider.Position = toPlayfieldPosition(scale, hitObject.StackedPosition);
             drawableSlider.Scale = new Vector2(scale);
         }
 
@@ -187,10 +188,10 @@ namespace osu.Game.Rulesets.Osu.Mods
 
         private static float depthForScale(float scale) => -camera_position.Z / scale + camera_position.Z;
 
-        private Vector2 toPlayfieldPosition(float scale, Vector2 positionAtZeroDepth, Vector2 cursorPos)
+        private Vector2 toPlayfieldPosition(float scale, Vector2 positionAtZeroDepth)
         {
-            Vector2 cursorrelative = new Vector2(cursorPos.X - 1920f / 8f, cursorPos.Y - 1080f / 8f);
-            return (positionAtZeroDepth - camera_position.Xy) * scale + camera_position.Xy + ((cursorrelative * -ParaAmount.Value) * (new Vector2(scale, scale) / 1f));
+            Vector2 CursorRelativePlayfieldPosition = CursorPosition - (PlayfieldSize / 2);
+            return (positionAtZeroDepth - camera_position.Xy) * scale + camera_position.Xy + ((CursorRelativePlayfieldPosition * -ParaAmount.Value) * (new Vector2(scale, scale) / 1f));
         }
 
         public void ApplyToDifficulty(BeatmapDifficulty difficulty) => ApplySettings(difficulty);
@@ -204,5 +205,7 @@ namespace osu.Game.Rulesets.Osu.Mods
             float ApproachRate = MapRange(ScrollSpeed.Value, 1, 10, -10, 10);
             difficulty.ApproachRate = ApproachRate;
         }
+
+
     }
 }
