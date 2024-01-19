@@ -34,7 +34,7 @@ namespace osu.Game.Rulesets.Osu.Mods
         private readonly float sliderMinDepth = depthForScale(1.5f); // Depth at which slider's scale will be 1.5f
 
         [SettingSource("Scroll Speed", "How fast to scroll.", 0)]
-        public BindableFloat ScrollSpeed { get; } = new BindableFloat(6)
+        public BindableFloat ScrollSpeed { get; } = new BindableFloat(5.5f)
         {
             Precision = 0.5f,
             MinValue = 1,
@@ -42,9 +42,9 @@ namespace osu.Game.Rulesets.Osu.Mods
         };
 
         [SettingSource("Parralax Amount", "Ratio of cursor to circle motion.", 0)]
-        public BindableFloat ParaAmount { get; } = new BindableFloat(0.4f)
+        public BindableFloat ParaAmount { get; } = new BindableFloat(0.35f)
         {
-            Precision = 0.1f,
+            Precision = 0.05f,
             MinValue = 0,
             MaxValue = 1
         };
@@ -133,7 +133,7 @@ namespace osu.Game.Rulesets.Osu.Mods
 
             float scale = scaleForDepth(z);
             drawable.Position = toPlayfieldPosition(scale, hitObject.StackedPosition);
-            drawable.Alpha = MapRange(scale, 0.4f, 1.4f, 1f, .3f);
+            drawable.Alpha = MapRange(scale, 0.3f, 1.4f, 1f, .3f);
             drawable.Scale = new Vector2(scale);
         }
         public static float MapRange(float initValue, float fromMin, float fromMax, float toMin, float toMax)
@@ -193,7 +193,7 @@ namespace osu.Game.Rulesets.Osu.Mods
 
             float scale = scaleForDepth(z);
             drawableSlider.Position = toPlayfieldPosition(scale, hitObject.StackedPosition);
-            drawableSlider.Alpha = MapRange(scale, 0.4f, 1.4f, 1f, .3f);
+            drawableSlider.Alpha = MapRange(scale, 0.3f, 1.4f, 1f, .3f);
             drawableSlider.Scale = new Vector2(scale);
         }
 
