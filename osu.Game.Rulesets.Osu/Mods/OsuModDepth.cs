@@ -26,15 +26,15 @@ namespace osu.Game.Rulesets.Osu.Mods
         public override string Acronym => "DP";
         public override IconUsage? Icon => FontAwesome.Solid.Cube;
         public override ModType Type => ModType.Fun;
-        public override LocalisableString Description => "3D. Almost.";
-        public override double ScoreMultiplier => 1;
+        public override LocalisableString Description => "3D.";
+        public override double ScoreMultiplier => 1.2;
         public override Type[] IncompatibleMods => base.IncompatibleMods.Concat(new[] { typeof(OsuModMagnetised), typeof(OsuModRepel), typeof(OsuModFreezeFrame), typeof(ModWithVisibilityAdjustment), typeof(IRequiresApproachCircles) }).ToArray();
 
         private static readonly Vector3 camera_position = new Vector3(OsuPlayfield.BASE_SIZE.X * 0.5f, OsuPlayfield.BASE_SIZE.Y * 0.5f, -200);
         private readonly float sliderMinDepth = depthForScale(1.5f); // Depth at which slider's scale will be 1.5f
 
         [SettingSource("Scroll Speed", "How fast to scroll.", 0)]
-        public BindableFloat ScrollSpeed { get; } = new BindableFloat(5)
+        public BindableFloat ScrollSpeed { get; } = new BindableFloat(6)
         {
             Precision = 0.5f,
             MinValue = 1,
@@ -42,20 +42,20 @@ namespace osu.Game.Rulesets.Osu.Mods
         };
 
         [SettingSource("Parralax Amount", "Ratio of cursor to circle motion.", 0)]
-        public BindableFloat ParaAmount { get; } = new BindableFloat(0.3f)
+        public BindableFloat ParaAmount { get; } = new BindableFloat(0.4f)
         {
             Precision = 0.1f,
             MinValue = 0,
             MaxValue = 1
         };
 
-        [SettingSource("Circle Opacity", "How opaque should objects be.", 0)]
+        /*[SettingSource("Circle Opacity", "How opaque should objects be.", 0)]
         public BindableFloat CircleOpacity { get; } = new BindableFloat(85)
         {
             Precision = 5,
             MinValue = 10,
             MaxValue = 100
-        };
+        };*/
 
         [SettingSource("Show Judgements", "Whether judgements should be visible.", 1)]
         public BindableBool ShowJudgements { get; } = new BindableBool(false);
@@ -75,7 +75,7 @@ namespace osu.Game.Rulesets.Osu.Mods
 
         private void applyTransform(DrawableHitObject drawable, ArmedState state)
         {
-            drawable.Alpha = MapRange(CircleOpacity.Value, 10, 100, 0.1f, 1f);
+            //drawable.Alpha = MapRange(CircleOpacity.Value, 10, 100, 0.1f, 1f);
             switch (drawable)
             {
                 case DrawableHitCircle circle:
@@ -133,11 +133,12 @@ namespace osu.Game.Rulesets.Osu.Mods
 
             float scale = scaleForDepth(z);
             drawable.Position = toPlayfieldPosition(scale, hitObject.StackedPosition);
+            drawable.Alpha = MapRange(scale, 0.4f, 1.4f, 1f, .3f);
             drawable.Scale = new Vector2(scale);
         }
-        public static float MapRange(float from, float fromMin, float fromMax, float toMin, float toMax)
+        public static float MapRange(float initValue, float fromMin, float fromMax, float toMin, float toMax)
         {
-            float fromAbs = from - fromMin;
+            float fromAbs = initValue - fromMin;
             float fromMaxAbs = fromMax - fromMin;
 
             float normal = fromAbs / fromMaxAbs;
@@ -192,6 +193,7 @@ namespace osu.Game.Rulesets.Osu.Mods
 
             float scale = scaleForDepth(z);
             drawableSlider.Position = toPlayfieldPosition(scale, hitObject.StackedPosition);
+            drawableSlider.Alpha = MapRange(scale, 0.4f, 1.4f, 1f, .3f);
             drawableSlider.Scale = new Vector2(scale);
         }
 
