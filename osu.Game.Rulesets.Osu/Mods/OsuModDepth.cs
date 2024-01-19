@@ -4,6 +4,7 @@
 using System;
 using System.Linq;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Localisation;
 using osu.Game.Configuration;
@@ -19,6 +20,7 @@ namespace osu.Game.Rulesets.Osu.Mods
 {
     public class OsuModDepth : ModWithVisibilityAdjustment, IUpdatableByPlayfield, IApplicableToDrawableRuleset<OsuHitObject>
     {
+
         public override string Name => "Depth";
         public override string Acronym => "DP";
         public override IconUsage? Icon => FontAwesome.Solid.Cube;
@@ -35,12 +37,19 @@ namespace osu.Game.Rulesets.Osu.Mods
         {
             Precision = 10,
             MinValue = 50,
-            MaxValue = 200
+            MaxValue = 3000
         };
 
         [SettingSource("Show Approach Circles", "Whether approach circles should be visible.", 1)]
         public BindableBool ShowApproachCircles { get; } = new BindableBool(true);
 
+        [SettingSource("Para Amnt", "How far away objects appear.", 0)]
+        public BindableFloat ParaAmount { get; } = new BindableFloat(0.25f)
+        {
+            Precision = 0.05f,
+            MinValue = 0,
+            MaxValue = 1
+        };
         protected override void ApplyIncreasedVisibilityState(DrawableHitObject hitObject, ArmedState state) => applyTransform(hitObject, state);
 
         protected override void ApplyNormalVisibilityState(DrawableHitObject hitObject, ArmedState state) => applyTransform(hitObject, state);
@@ -74,37 +83,36 @@ namespace osu.Game.Rulesets.Osu.Mods
         public void Update(Playfield playfield)
         {
             double time = playfield.Time.Current;
-
+            var cursorPos = playfield.Cursor.AsNonNull().ActiveCursor.DrawPosition;
             foreach (var drawable in playfield.HitObjectContainer.AliveObjects)
             {
                 switch (drawable)
                 {
                     case DrawableHitCircle circle:
-                        processHitObject(time, circle);
+                        processHitObject(time, circle, cursorPos);
                         break;
 
                     case DrawableSlider slider:
-                        processSlider(time, slider);
+                        processSlider(time, slider, cursorPos);
                         break;
                 }
             }
         }
 
-        private void processHitObject(double time, DrawableOsuHitObject drawable)
+        private void processHitObject(double time, DrawableOsuHitObject drawable, Vector2 cursorPos)
         {
             var hitObject = drawable.HitObject;
-
             // Circles are always moving at the constant speed. They'll fade out before reaching the camera even at extreme conditions (AR 11, max depth).
             double speed = MaxDepth.Value / hitObject.TimePreempt;
             double appearTime = hitObject.StartTime - hitObject.TimePreempt;
             float z = MaxDepth.Value - (float)((Math.Max(time, appearTime) - appearTime) * speed);
 
             float scale = scaleForDepth(z);
-            drawable.Position = toPlayfieldPosition(scale, hitObject.StackedPosition);
+            drawable.Position = toPlayfieldPosition(scale, hitObject.StackedPosition, cursorPos);
             drawable.Scale = new Vector2(scale);
         }
 
-        private void processSlider(double time, DrawableSlider drawableSlider)
+        private void processSlider(double time, DrawableSlider drawableSlider, Vector2 cursorPos)
         {
             var hitObject = drawableSlider.HitObject;
 
@@ -116,14 +124,14 @@ namespace osu.Game.Rulesets.Osu.Mods
 
             if (zEnd > sliderMinDepth)
             {
-                processHitObject(time, drawableSlider);
+                processHitObject(time, drawableSlider, cursorPos);
                 return;
             }
 
             double offsetAfterStartTime = hitObject.Duration + 500;
             double slowSpeed = Math.Min(-sliderMinDepth / offsetAfterStartTime, baseSpeed);
 
-            double decelerationTime = hitObject.TimePreempt * 0.2;
+            double decelerationTime = hitObject.TimePreempt * 0.05;
             float decelerationDistance = (float)(decelerationTime * (baseSpeed + slowSpeed) * 0.5);
 
             float z;
@@ -146,7 +154,7 @@ namespace osu.Game.Rulesets.Osu.Mods
             }
 
             float scale = scaleForDepth(z);
-            drawableSlider.Position = toPlayfieldPosition(scale, hitObject.StackedPosition);
+            drawableSlider.Position = toPlayfieldPosition(scale, hitObject.StackedPosition, cursorPos);
             drawableSlider.Scale = new Vector2(scale);
         }
 
@@ -154,9 +162,10 @@ namespace osu.Game.Rulesets.Osu.Mods
 
         private static float depthForScale(float scale) => -camera_position.Z / scale + camera_position.Z;
 
-        private static Vector2 toPlayfieldPosition(float scale, Vector2 positionAtZeroDepth)
+        private Vector2 toPlayfieldPosition(float scale, Vector2 positionAtZeroDepth, Vector2 cursorPos)
         {
-            return (positionAtZeroDepth - camera_position.Xy) * scale + camera_position.Xy;
+            Vector2 cursorrelative = new Vector2(cursorPos.X - 1920f / 8f, cursorPos.Y - 1080f / 8f);
+            return (positionAtZeroDepth - camera_position.Xy) * scale + camera_position.Xy + ((cursorrelative * -ParaAmount.Value) * (new Vector2(scale, scale) / 1f));
         }
     }
 }
