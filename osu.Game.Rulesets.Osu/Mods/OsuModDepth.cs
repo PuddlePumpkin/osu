@@ -15,6 +15,7 @@ using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Osu.Objects.Drawables;
 using osu.Game.Rulesets.Osu.UI;
 using osu.Game.Rulesets.UI;
+//using osu.Framework.Logging;
 using osuTK;
 
 namespace osu.Game.Rulesets.Osu.Mods
@@ -49,13 +50,13 @@ namespace osu.Game.Rulesets.Osu.Mods
             MaxValue = 1
         };
 
-        /*[SettingSource("Circle Opacity", "How opaque should objects be.", 0)]
-        public BindableFloat CircleOpacity { get; } = new BindableFloat(85)
+        [SettingSource("Circle Opacity", "How opaque should objects be.", 0)]
+        public BindableFloat CircleOpacity { get; } = new BindableFloat(.3f)
         {
-            Precision = 5,
-            MinValue = 10,
-            MaxValue = 100
-        };*/
+            Precision = .05f,
+            MinValue = .1f,
+            MaxValue = 1f
+        };
 
         [SettingSource("Show Judgements", "Whether judgements should be visible.", 1)]
         public BindableBool ShowJudgements { get; } = new BindableBool(false);
@@ -127,13 +128,14 @@ namespace osu.Game.Rulesets.Osu.Mods
         {
             var hitObject = drawable.HitObject;
             // Circles are always moving at the constant speed. They'll fade out before reaching the camera even at extreme conditions (AR 11, max depth).
-            double speed = 2000 / hitObject.TimePreempt;
+            double speed = MapRange(ScrollSpeed.Value, 1, 10, 1500, 2500) / hitObject.TimePreempt;
             double appearTime = hitObject.StartTime - hitObject.TimePreempt;
-            float z = 2000 - (float)((Math.Max(time, appearTime) - appearTime) * speed);
+            float z = MapRange(ScrollSpeed.Value, 1, 10, 1500, 2500) - (float)((Math.Max(time, appearTime) - appearTime) * speed);
 
             float scale = scaleForDepth(z);
             drawable.Position = toPlayfieldPosition(scale, hitObject.StackedPosition);
-            drawable.Alpha = MapRange(scale, 0.3f, 1.4f, 1f, .3f);
+            drawable.Alpha = MapRange((float)Math.Sqrt(scale), 0.44f, 1.1f, 1f, CircleOpacity.Value);
+            //Logger.Log($"DR Scale: {scale}");
             drawable.Scale = new Vector2(scale);
         }
         public static float MapRange(float initValue, float fromMin, float fromMax, float toMin, float toMax)
@@ -154,11 +156,11 @@ namespace osu.Game.Rulesets.Osu.Mods
         {
             var hitObject = drawableSlider.HitObject;
 
-            double baseSpeed = 2000 / hitObject.TimePreempt;
+            double baseSpeed = MapRange(ScrollSpeed.Value, 1, 10, 1500, 2500) / hitObject.TimePreempt;
             double appearTime = hitObject.StartTime - hitObject.TimePreempt;
 
             // Allow slider to move at a constant speed if its scale at the end time will be lower than 1.5f
-            float zEnd = 2000 - (float)((Math.Max(hitObject.StartTime + hitObject.Duration, appearTime) - appearTime) * baseSpeed);
+            float zEnd = MapRange(ScrollSpeed.Value, 1, 10, 1500, 2500) - (float)((Math.Max(hitObject.StartTime + hitObject.Duration, appearTime) - appearTime) * baseSpeed);
 
             if (zEnd > sliderMinDepth)
             {
@@ -193,7 +195,7 @@ namespace osu.Game.Rulesets.Osu.Mods
 
             float scale = scaleForDepth(z);
             drawableSlider.Position = toPlayfieldPosition(scale, hitObject.StackedPosition);
-            drawableSlider.Alpha = MapRange(scale, 0.3f, 1.4f, 1f, .3f);
+            drawableSlider.Alpha = MapRange((float)Math.Sqrt(scale), 0.44f, 1.1f, 1f, CircleOpacity.Value);
             drawableSlider.Scale = new Vector2(scale);
         }
 
