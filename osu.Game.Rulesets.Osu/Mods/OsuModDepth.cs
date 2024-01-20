@@ -42,7 +42,7 @@ namespace osu.Game.Rulesets.Osu.Mods
             MaxValue = 10
         };
 
-        [SettingSource("Parralax Amount", "Ratio of cursor to circle motion.", 0)]
+        [SettingSource("Parallax Amount", "Ratio of cursor to circle motion.", 0)]
         public BindableFloat ParaAmount { get; } = new BindableFloat(0.35f)
         {
             Precision = 0.05f,
