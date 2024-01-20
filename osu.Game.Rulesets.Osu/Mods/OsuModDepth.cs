@@ -72,6 +72,7 @@ namespace osu.Game.Rulesets.Osu.Mods
             drawableRuleset.Playfield.DisplayJudgements.Value = ShowJudgements.Value;
             (drawableRuleset.Playfield as OsuPlayfield)?.FollowPoints.Hide();
             ((OsuPlayfield)drawableRuleset.Playfield).Position = new Vector2(0, 0);
+            drawableRuleset.Playfield.Scale = drawableRuleset.Playfield.Scale * (ParaAmount.Value + 1);
         }
 
         private void applyTransform(DrawableHitObject drawable, ArmedState state)
